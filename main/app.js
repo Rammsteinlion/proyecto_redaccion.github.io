@@ -60,7 +60,15 @@ document.addEventListener('DOMContentLoaded', () => {
       // --------------------------------------------------
       // 7) Mostrar info general y tablas de colindancias
       // --------------------------------------------------
-      displayPropertyData(propertyData);
+      function parseData(headers, values) {
+  const result = {};
+  excelData['PREDIO_LINDERO'].forEach((key, index) => {
+    result[key] = values[index];
+  });
+  return result;
+}
+      const obj = parseData(excelData['PREDIO_LINDERO'][0], excelData['PREDIO_LINDERO'][1]);
+      displayPropertyData(excelData['PREDIO_LINDERO'][1]);
       displayBoundaries(boundariesData);
 
       // --------------------------------------------------
@@ -134,8 +142,6 @@ function extractPointsData(sheet) {
     if (!sheet || sheet.length < 2) return;
     
     const headers = sheet[0].map(h => String(h).trim().toUpperCase());
-
-    console.log(headers,'headers')
     
     // Buscar índices de las columnas con más alternativas posibles
     const numIndex = headers.findIndex(h => h.includes("NUMERO") || h.includes("PUNTO") || h.includes("PTO"));
@@ -201,21 +207,36 @@ function extractPointsData(sheet) {
   // 14) Función: muestra info general del predio en HTML
   // --------------------------------------------------
   function displayPropertyData(pd) {
+    pdp = {
+  nombrePredio: pd[11],
+  nombrePropietario: pd[12],
+  numeroPredial: pd[13],
+  folioMatricula: pd[14],
+  vereda: pd[8],
+  municipio: pd[7],
+  departamento: pd[6],
+  grupoEtnico: "Sin dato",
+  comunidad: "Sin dato",
+  proyeccion: pd[5],
+  epsg: "Sin dato"
+};
+
+    
     info.innerHTML = `
       <div class="border-t pt-4">
         <h2 class="text-lg font-semibold text-blue-700 mb-2">Información del Predio</h2>
         <ul class="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <li><strong>Nombre del Predio:</strong> ${pd.nombrePredio}</li>
-          <li><strong>Propietario:</strong> ${pd.nombrePropietario}</li>
-          <li><strong>NUPRE / Código Predial:</strong> ${pd.numeroPredial}</li>
-          <li><strong>Folio Matrícula:</strong> ${pd.folioMatricula}</li>
-          <li><strong>Vereda:</strong> ${pd.vereda}</li>
-          <li><strong>Municipio:</strong> ${pd.municipio}</li>
-          <li><strong>Departamento:</strong> ${pd.departamento}</li>
-          <li><strong>Grupo Étnico:</strong> ${pd.grupoEtnico}</li>
-          <li><strong>Comunidad:</strong> ${pd.comunidad}</li>
-          <li><strong>Proyección:</strong> ${pd.proyeccion}</li>
-          <li><strong>EPSG:</strong> ${pd.epsg}</li>
+          <li><strong>Nombre del Predio:</strong> ${pdp.nombrePredio}</li>
+          <li><strong>Propietario:</strong> ${pdp.nombrePropietario}</li>
+          <li><strong>NUPRE / Código Predial:</strong> ${pdp.numeroPredial}</li>
+          <li><strong>Folio Matrícula:</strong> ${pdp.folioMatricula}</li>
+          <li><strong>Vereda:</strong> ${pdp.vereda}</li>
+          <li><strong>Municipio:</strong> ${pdp.municipio}</li>
+          <li><strong>Departamento:</strong> ${pdp.departamento}</li>
+          <li><strong>Grupo Étnico:</strong> ${pdp.grupoEtnico}</li>
+          <li><strong>Comunidad:</strong> ${pdp.comunidad}</li>
+          <li><strong>Proyección:</strong> ${pdp.proyeccion}</li>
+          <li><strong>EPSG:</strong> ${pdp.epsg}</li>
         </ul>
       </div>
     `;
@@ -303,6 +324,7 @@ function extractPointsData(sheet) {
   // --------------------------------------------------
   function generarRedaccionEnPantalla(pd, bd, puntos) {
     if (!pd || !bd || bd.length === 0) return;
+    
 
     // Agrupar colindancias por orientación
     const agrupadas = bd.reduce((acc, b) => {
