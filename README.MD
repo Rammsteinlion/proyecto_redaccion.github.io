@@ -1,7 +1,7 @@
 # Visor de Datos Catastrales 📊
 
-**Autor:** [Elkin Murillo Torres]  
-**Contacto:** [rastaw28@gmail.com] | [GitHub: Rammsteinlion](https://github.com/Rammsteinlion)
+**Autor:** Elkin Murillo Torres  
+**Contacto:** rastaw28@gmail.com | [GitHub: Rammsteinlion](https://github.com/Rammsteinlion)
 
 ---
 
