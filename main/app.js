@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --------------------------------------------------
   const fileInput          = document.getElementById('fileInput');
   const progressBar        = document.getElementById('progressBar');
+  const percentageText     = document.getElementById('texto');
   const info               = document.getElementById('info');
   const fileName           = document.getElementById('fileName');
   const botonContainer     = document.getElementById('botonRedaccionContainer');
@@ -86,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const interval = setInterval(() => {
       const percent = Math.min(100, ((Date.now() - start) / duration) * 100);
       progressBar.style.width = percent + '%';
+      percentageText.textContent = Math.round(percent) + '%';;
       if (percent >= 100) {
         clearInterval(interval);
         callback();
