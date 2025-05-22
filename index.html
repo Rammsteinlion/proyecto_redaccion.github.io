@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carga de Excel</title>
+
+  <!-- FontAwesome CDN alternativo (sin errores 403) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- Librería docx.js para generar Word en el cliente -->
+<!-- … -->
+<!-- Cargar la librería docx -->
+<script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+<!-- … -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+
+  <div class="w-full max-w-4xl bg-white shadow-lg rounded-xl p-6 space-y-4">
+    <h1 class="text-2xl font-bold text-gray-700 text-center">Visor de Datos Catastrales</h1>
+
+    <!-- Botón para cargar archivo -->
+    <div class="flex items-center space-x-4">
+      <label class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow cursor-pointer inline-flex items-center">
+        <i class="fas fa-file-upload mr-2"></i>
+        Cargar archivo Excel
+        <!-- <input> debe tener id="fileInput" porque el JS lo busca -->
+        <input type="file" id="fileInput" accept=".xlsx, .xls" class="hidden" />
+      </label>
+      <!-- Asegúrate de que exista exactamente este span con id="fileName" -->
+      <span id="fileName" class="text-sm text-gray-600 italic truncate max-w-xs"></span>
+    </div>
+
+    <!-- Barra de progreso -->
+    <div class="w-full bg-gray-300 h-3 rounded-full overflow-hidden">
+      <div id="progressBar" class="bg-green-500 h-full w-0 transition-all duration-[3000ms]"></div>
+    </div>
+
+    <!-- Contenedor para mostrar datos -->
+    <!-- Este div debe tener id="info", porque el JS lo busca con getElementById('info') -->
+    <div id="info" class="space-y-6 text-sm text-gray-800"></div>
+
+    <!-- Aquí saldrá el botón "Generar redacción técnica" -->
+    <!-- Este div debe tener id="botonRedaccionContainer" -->
+    <div id="botonRedaccionContainer" class="mt-4"></div>
+
+    <!-- Aquí se mostrará la redacción generada (opcional visualizar antes de descargar) -->
+    <div id="redaccionTecnica" class="mt-6 p-4 bg-gray-50 border border-gray-200 rounded text-sm whitespace-pre-wrap"></div>
+  </div>
+
+  <!-- Librería xlsx (SheetJS) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Tu archivo JS debe cargarse al final, para que todos los elementos <div id="..."> existan -->
+  <script src="main/app.js"></script>
+</body>
+</html>
