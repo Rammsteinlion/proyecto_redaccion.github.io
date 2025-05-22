@@ -1,7 +1,7 @@
 # Visor de Datos Catastrales 📊
 
 **Autor:** [Tu Nombre]  
-**Contacto:** [tu@email.com] | [GitHub: TuUsuarioGitHub](https://github.com/TuUsuarioGitHub)
+**Contacto:** [rastaw28@gmail.com] | [GitHub: Rammsteinlion](https://github.com/Rammsteinlion)
 
 ---
 
