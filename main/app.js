@@ -109,9 +109,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let puntosLindero = [];
 
   // Recolectamos los puntos que forman este lindero específico
-  for (let i = b.pInicio; i !== b.pFin + step; i += step) {
-    if (pointsDataMap[i]) {
-      puntosLindero.push(pointsDataMap[i]);
+  // Manejo especial para cuando pInicio > pFin (cierre del polígono)
+  if (b.pInicio > b.pFin) {
+    // Caso especial: recorremos hacia atrás o manejamos el cierre
+    for (let i = b.pInicio; i >= b.pFin; i--) {
+      if (pointsDataMap[i]) {
+        puntosLindero.push(pointsDataMap[i]);
+      }
+    }
+  } else {
+    for (let i = b.pInicio; i <= b.pFin; i++) {
+      if (pointsDataMap[i]) {
+        puntosLindero.push(pointsDataMap[i]);
+      }
     }
   }
 
@@ -129,87 +139,88 @@ document.addEventListener('DOMContentLoaded', () => {
   const centroPredioN = (maxN + minN) / 2;
   const centroPredioE = (maxE + minE) / 2;
 
-  // Hallamos el centro promedio de este lindero
-  const centroLinderoN = puntosLindero.reduce((a, p) => a + p.norte, 0) / puntosLindero.length;
-  const centroLinderoE = puntosLindero.reduce((a, p) => a + p.este, 0) / puntosLindero.length;
+  // Para linderos con pocos puntos (2-3), usamos el punto medio geométrico
+  // Para linderos con más puntos, usamos el promedio
+  let centroLinderoN, centroLinderoE;
+  
+  if (puntosLindero.length === 2) {
+    // Para 2 puntos, el centro es exactamente el punto medio
+    centroLinderoN = (puntosLindero[0].norte + puntosLindero[1].norte) / 2;
+    centroLinderoE = (puntosLindero[0].este + puntosLindero[1].este) / 2;
+  } else {
+    centroLinderoN = puntosLindero.reduce((a, p) => a + p.norte, 0) / puntosLindero.length;
+    centroLinderoE = puntosLindero.reduce((a, p) => a + p.este, 0) / puntosLindero.length;
+  }
 
   // Calculamos la diferencia de posición respecto al centro
   const difN = centroLinderoN - centroPredioN;
   const difE = centroLinderoE - centroPredioE;
 
+  // Umbral para considerar cuando está muy cerca de la diagonal
+  const umbral = 0.15; // 15% de tolerancia
+  
+  const ratio = Math.abs(difE) / (Math.abs(difN) + Math.abs(difE));
+  
+  // Si está muy cerca de la diagonal (45 grados), usamos la dirección del vector
+  if (Math.abs(ratio - 0.5) < umbral) {
+    // Usamos la dirección predominante basada en la magnitud absoluta
+    if (Math.abs(difE) > Math.abs(difN)) {
+      return difE > 0 ? "POR EL ESTE:" : "POR EL OESTE:";
+    } else {
+      return difN > 0 ? "POR EL NORTE:" : "POR EL SUR:";
+    }
+  }
+
   // Comparamos qué eje domina (si está más lejos horizontal o verticalmente)
   if (Math.abs(difE) > Math.abs(difN)) {
-    // Si la diferencia Este/Oeste es mayor:
     return difE > 0 ? "POR EL ESTE:" : "POR EL OESTE:";
   } else {
-    // Si la diferencia Norte/Sur es mayor:
     return difN > 0 ? "POR EL NORTE:" : "POR EL SUR:";
   }
 }
 
-  /*
-  function obtenerOrientacionDominante(b) {
-    const step = b.pInicio < b.pFin ? 1 : -1;
-    let puntos = [];
+function generarRedaccion() {
+  let t = "**LINDEROS TÉCNICOS**\n\n";
+  let orientacionActual = "";
 
-    for (let i = b.pInicio; i !== b.pFin + step; i += step) {
-      if (pointsDataMap[i]) {
-        puntos.push(pointsDataMap[i]);
-      }
-    }
+  // Identificar el punto máximo (último punto del polígono)
+  const todosLosIds = Object.keys(pointsDataMap).map(Number).sort((a,b) => a-b);
+  const puntoMaximo = Math.max(...todosLosIds);
+  const puntoMinimo = Math.min(...todosLosIds); // normalmente 1
 
-    if (puntos.length === 0) return "POR EL NORTE:";
-
-    const todos = Object.values(pointsDataMap);
-    const maxN = Math.max(...todos.map(p => p.norte));
-    const minN = Math.min(...todos.map(p => p.norte));
-    const maxE = Math.max(...todos.map(p => p.este));
-    const minE = Math.min(...todos.map(p => p.este));
-
-    // Centro del lindero actual
-    const centroN = puntos.reduce((a, p) => a + p.norte, 0) / puntos.length;
-    const centroE = puntos.reduce((a, p) => a + p.este, 0) / puntos.length;
+  boundariesData.forEach((b, idx) => {
     
-    // Centro geográfico del predio completo
-    const midN = (maxN + minN) / 2;
-    const midE = (maxE + minE) / 2;
+    // DETECTAR SI ES LINDERO DE CIERRE: va del último punto al primero
+    const esLinderoCierre = (b.pInicio === puntoMaximo && b.pFin === puntoMinimo);
+    
+    const orientacion = obtenerOrientacionDominante(b);
 
-    // Distancias a los ejes centrales
-    const distN = centroN - midN;
-    const distE = centroE - midE;
-
-    // Determinamos cuál es el eje más alejado del centro para asignar orientación
-    if (Math.abs(distN) > Math.abs(distE)) {
-      return distN > 0 ? "POR EL NORTE:" : "POR EL SUR:";
-    } else {
-      return distE > 0 ? "POR EL ESTE:" : "POR EL OESTE:";
+    if (orientacion !== orientacionActual) {
+      orientacionActual = orientacion;
+      t += `${orientacion}\n\n`;
     }
-  }
-*/
 
-
-
-  function generarRedaccion() {
-
-    let t = "**LINDEROS TÉCNICOS**\n\n";
-
-    let orientacionActual = "";
-
-    boundariesData.forEach((b, idx) => {
-
+    let tramos = [];
+    
+    if (esLinderoCierre) {
+      // LINDERO DE CIERRE: Solo dos puntos, línea directa
+      const pInicio = pointsDataMap[b.pInicio];
+      const pFin = pointsDataMap[b.pFin];
+      const sentido = obtenerSentidoCartesiano(pInicio, pFin);
+      
+      tramos = [{
+        inicio: b.pInicio,
+        fin: b.pFin,
+        puntos: [],
+        sentido: sentido
+      }];
+      
+    } else {
+      // LINDEROS NORMALES: Recorrido con puntos intermedios
       const step = b.pInicio < b.pFin ? 1 : -1;
-      const orientacion = obtenerOrientacionDominante(b);
-
-      if (orientacion !== orientacionActual) {
-        orientacionActual = orientacion;
-        t += `${orientacion}\n\n`;
-      }
-
-      let tramos = [];
       let tramoActual = { inicio: b.pInicio, fin: null, puntos: [], sentido: "" };
 
       for (let i = b.pInicio; i !== b.pFin; i += step) {
-
         const p1 = pointsDataMap[i];
         const p2 = pointsDataMap[i + step];
         if (!p1 || !p2) continue;
@@ -219,10 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tramoActual.sentido === "") tramoActual.sentido = sentido;
 
         if (sentido !== tramoActual.sentido) {
-
           tramoActual.fin = i;
-          tramos.push(tramoActual);
-
+          tramos.push({...tramoActual});
           tramoActual = {
             inicio: i,
             fin: null,
@@ -230,59 +239,54 @@ document.addEventListener('DOMContentLoaded', () => {
             sentido: sentido
           };
         }
-
         tramoActual.puntos.push(i + step);
       }
-
       tramoActual.fin = b.pFin;
       tramos.push(tramoActual);
+    }
 
-      tramos.forEach((tr, index) => {
+    // Generar texto (igual que antes)
+    tramos.forEach((tr, index) => {
+      const pI = pointsDataMap[tr.inicio];
+      const pF = pointsDataMap[tr.fin];
 
-        const pI = pointsDataMap[tr.inicio];
-        const pF = pointsDataMap[tr.fin];
+      let parrafo = "";
 
-        let parrafo = "";
+      if (index === 0) {
+        parrafo += `<strong>Lindero ${idx + 1}:</strong> Inicia en el punto número ${tr.inicio} de coordenadas planas N= ${pI.norte.toFixed(2)}m, E= ${pI.este.toFixed(2)}m, `;
+      } else {
+        parrafo += `Continúa en el punto número ${tr.inicio} de coordenadas planas N= ${pI.norte.toFixed(2)}m, E= ${pI.este.toFixed(2)}m, `;
+      }
 
-        if (index === 0) {
-          parrafo += `<strong>Lindero ${idx + 1}:</strong> Inicia en el punto número ${tr.inicio} de coordenadas planas N= ${pI.norte.toFixed(2)}m, E= ${pI.este.toFixed(2)}m, `;
-        } else {
-          parrafo += `Continúa en el punto número ${tr.inicio} de coordenadas planas N= ${pI.norte.toFixed(2)}m, E= ${pI.este.toFixed(2)}m, `;
-        }
+      const esQuebrada = tr.puntos.length > 0;
+      
+      parrafo += `en línea ${esQuebrada ? 'quebrada' : 'recta'} en sentido ${tr.sentido}, `;
 
-        const esQuebrada = tr.puntos.length > 1;
+      if (esQuebrada) {
+        const intermedios = tr.puntos.map(p =>
+          `el punto número ${p} de coordenadas planas N= ${pointsDataMap[p].norte.toFixed(2)}m, E= ${pointsDataMap[p].este.toFixed(2)}m`
+        );
+        parrafo += `pasando por ${intermedios.join(', ')}, `;
+      }
 
-        parrafo += `en línea ${esQuebrada ? 'quebrada' : 'recta'} en sentido ${tr.sentido}, `;
+      parrafo += `hasta encontrar el punto número ${tr.fin} de coordenadas planas N= ${pF.norte.toFixed(2)}m, E= ${pF.este.toFixed(2)}m`;
 
-        if (esQuebrada) {
+      if (index === tramos.length - 1 && b.distAcu) {
+        parrafo += ` con una distancia total acumulada de ${Number(b.distAcu).toFixed(1)}m`;
+      }
 
-          const intermedios = tr.puntos.slice(0, -1).map(p =>
-            `el punto número ${p} de coordenadas planas N= ${pointsDataMap[p].norte.toFixed(2)}m, E= ${pointsDataMap[p].este.toFixed(2)}m`
-          );
+      if (index === tramos.length - 1) {
+        parrafo += ` colindando con un predio ${b.colindante}, el NUPRE Código predial ${b.nupre}, Folio de matrícula inmobiliaria ${b.fmi} y de propietario ${b.prop}.`;
+      }
 
-          if (intermedios.length > 0) {
-            parrafo += `pasando por ${intermedios.join(', ')}, `;
-          }
-        }
-
-        parrafo += `hasta encontrar el punto número ${tr.fin} de coordenadas planas N= ${pF.norte.toFixed(2)}m, E= ${pF.este.toFixed(2)}m`;
-
-        if (index === tramos.length - 1 && b.distAcu) {
-          parrafo += ` con una distancia total acumulada de ${Number(b.distAcu).toFixed(1)}m`;
-        }
-
-        if (index === tramos.length - 1) {
-          parrafo += ` colindando con un predio ${b.colindante}, el NUPRE Código predial ${b.nupre}, Folio de matrícula inmobiliaria ${b.fmi} y de propietario ${b.prop}.`;
-        }
-
-        t += parrafo + "\n\n";
-      });
-
+      t += parrafo + "\n\n";
     });
+  });
 
-    redaccionContainer.innerHTML = t.replace(/\n/g, "<br>");
-    mostrarBotonDescarga(t);
-  }
+  redaccionContainer.innerHTML = t.replace(/\n/g, "<br>");
+  mostrarBotonDescarga(t);
+}
+
 
   function mostrarBotonGenerar() {
 
