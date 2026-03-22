@@ -259,7 +259,7 @@ function generarRedaccion() {
 
       const esQuebrada = tr.puntos.length > 0;
       
-      parrafo += `en línea ${esQuebrada ? 'quebrada' : 'recta'} en sentido ${tr.sentido}, `;
+      parrafo += `en línea ${esQuebrada ? 'quebrada siguiendo la sinusidad de la quebrada' : 'recta'} en sentido ${tr.sentido}, `;
 
       if (esQuebrada) {
         const intermedios = tr.puntos.map(p =>
