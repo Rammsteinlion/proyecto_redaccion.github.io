@@ -105,74 +105,47 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function obtenerOrientacionDominante(b) {
-  const step = b.pInicio < b.pFin ? 1 : -1;
+
+  const idsOrdenados = Object.keys(pointsDataMap)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  let indexInicio = idsOrdenados.indexOf(b.pInicio);
+  let indexFin = idsOrdenados.indexOf(b.pFin);
+
   let puntosLindero = [];
 
-  // Recolectamos los puntos que forman este lindero específico
-  // Manejo especial para cuando pInicio > pFin (cierre del polígono)
-  if (b.pInicio > b.pFin) {
-    // Caso especial: recorremos hacia atrás o manejamos el cierre
-    for (let i = b.pInicio; i >= b.pFin; i--) {
-      if (pointsDataMap[i]) {
-        puntosLindero.push(pointsDataMap[i]);
-      }
+  // 🔥 recorrido REAL del polígono (no por número directo)
+  for (let i = indexInicio; ; i++) {
+    if (i >= idsOrdenados.length) i = 0;
+
+    const id = idsOrdenados[i];
+    if (pointsDataMap[id]) {
+      puntosLindero.push(pointsDataMap[id]);
     }
-  } else {
-    for (let i = b.pInicio; i <= b.pFin; i++) {
-      if (pointsDataMap[i]) {
-        puntosLindero.push(pointsDataMap[i]);
-      }
-    }
+
+    if (id === b.pFin) break;
   }
 
-  // Si no hay puntos, por defecto Norte (evita errores)
   if (puntosLindero.length === 0) return "POR EL NORTE:";
 
-  // Calculamos los límites (extremos) de todo el terreno
   const todosLosPuntos = Object.values(pointsDataMap);
   const maxN = Math.max(...todosLosPuntos.map(p => p.norte));
   const minN = Math.min(...todosLosPuntos.map(p => p.norte));
   const maxE = Math.max(...todosLosPuntos.map(p => p.este));
   const minE = Math.min(...todosLosPuntos.map(p => p.este));
 
-  // Hallamos el centro exacto del predio completo
   const centroPredioN = (maxN + minN) / 2;
   const centroPredioE = (maxE + minE) / 2;
 
-  // Para linderos con pocos puntos (2-3), usamos el punto medio geométrico
-  // Para linderos con más puntos, usamos el promedio
-  let centroLinderoN, centroLinderoE;
-  
-  if (puntosLindero.length === 2) {
-    // Para 2 puntos, el centro es exactamente el punto medio
-    centroLinderoN = (puntosLindero[0].norte + puntosLindero[1].norte) / 2;
-    centroLinderoE = (puntosLindero[0].este + puntosLindero[1].este) / 2;
-  } else {
-    centroLinderoN = puntosLindero.reduce((a, p) => a + p.norte, 0) / puntosLindero.length;
-    centroLinderoE = puntosLindero.reduce((a, p) => a + p.este, 0) / puntosLindero.length;
-  }
+  const centroLinderoN = puntosLindero.reduce((a, p) => a + p.norte, 0) / puntosLindero.length;
+  const centroLinderoE = puntosLindero.reduce((a, p) => a + p.este, 0) / puntosLindero.length;
 
-  // Calculamos la diferencia de posición respecto al centro
   const difN = centroLinderoN - centroPredioN;
   const difE = centroLinderoE - centroPredioE;
 
-  // Umbral para considerar cuando está muy cerca de la diagonal
-  const umbral = 0.15; // 15% de tolerancia
-  
-  const ratio = Math.abs(difE) / (Math.abs(difN) + Math.abs(difE));
-  
-  // Si está muy cerca de la diagonal (45 grados), usamos la dirección del vector
-  if (Math.abs(ratio - 0.5) < umbral) {
-    // Usamos la dirección predominante basada en la magnitud absoluta
-    if (Math.abs(difE) > Math.abs(difN)) {
-      return difE > 0 ? "POR EL ESTE:" : "POR EL OESTE:";
-    } else {
-      return difN > 0 ? "POR EL NORTE:" : "POR EL SUR:";
-    }
-  }
-
-  // Comparamos qué eje domina (si está más lejos horizontal o verticalmente)
-  if (Math.abs(difE) > Math.abs(difN)) {
+  // 🔥 prioridad lateral (Oeste/Este)
+  if (Math.abs(difE) >= Math.abs(difN) * 0.7) {
     return difE > 0 ? "POR EL ESTE:" : "POR EL OESTE:";
   } else {
     return difN > 0 ? "POR EL NORTE:" : "POR EL SUR:";
@@ -215,35 +188,74 @@ function generarRedaccion() {
         sentido: sentido
       }];
       
-    } else {
-      // LINDEROS NORMALES: Recorrido con puntos intermedios
-      const step = b.pInicio < b.pFin ? 1 : -1;
-      let tramoActual = { inicio: b.pInicio, fin: null, puntos: [], sentido: "" };
-
-      for (let i = b.pInicio; i !== b.pFin; i += step) {
-        const p1 = pointsDataMap[i];
-        const p2 = pointsDataMap[i + step];
-        if (!p1 || !p2) continue;
-
-        const sentido = obtenerSentidoCartesiano(p1, p2);
-
-        if (tramoActual.sentido === "") tramoActual.sentido = sentido;
-
-        if (sentido !== tramoActual.sentido) {
-          tramoActual.fin = i;
-          tramos.push({...tramoActual});
-          tramoActual = {
-            inicio: i,
-            fin: null,
-            puntos: [],
-            sentido: sentido
-          };
-        }
-        tramoActual.puntos.push(i + step);
-      }
-      tramoActual.fin = b.pFin;
-      tramos.push(tramoActual);
     }
+    else {
+  // 🔥 ORDEN REAL DEL POLÍGONO
+  const idsOrdenados = Object.keys(pointsDataMap)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  let indexInicio = idsOrdenados.indexOf(b.pInicio);
+  let indexFin = idsOrdenados.indexOf(b.pFin);
+
+  let recorrido = [];
+
+  for (let i = indexInicio; ; i++) {
+    if (i >= idsOrdenados.length) i = 0;
+
+    recorrido.push(idsOrdenados[i]);
+
+    if (idsOrdenados[i] === b.pFin) break;
+  }
+
+  let tramoActual = {
+    inicio: recorrido[0],
+    fin: null,
+    puntos: [],
+    sentido: ""
+  };
+
+  for (let i = 0; i < recorrido.length - 1; i++) {
+    const p1 = pointsDataMap[recorrido[i]];
+    const p2 = pointsDataMap[recorrido[i + 1]];
+    if (!p1 || !p2) continue;
+
+    // 🔥 sentido basado en el INICIO del tramo (NO por segmentico)
+    const base = pointsDataMap[tramoActual.inicio];
+    const sentido = obtenerSentidoCartesiano(base, p2);
+
+    if (tramoActual.sentido === "") tramoActual.sentido = sentido;
+
+    if (
+      tramoActual.sentido !== "" &&
+      (
+        (tramoActual.sentido === "Norte" && sentido === "Sur") ||
+        (tramoActual.sentido === "Sur" && sentido === "Norte") ||
+        (tramoActual.sentido === "Este" && sentido === "Oeste") ||
+        (tramoActual.sentido === "Oeste" && sentido === "Este") ||
+        (tramoActual.sentido === "Noreste" && sentido === "Suroeste") ||
+        (tramoActual.sentido === "Suroeste" && sentido === "Noreste") ||
+        (tramoActual.sentido === "Noroeste" && sentido === "Sureste") ||
+        (tramoActual.sentido === "Sureste" && sentido === "Noroeste")
+      )
+    ) {
+      tramoActual.fin = recorrido[i];
+      tramos.push({ ...tramoActual });
+
+      tramoActual = {
+        inicio: recorrido[i],
+        fin: null,
+        puntos: [],
+        sentido: sentido
+      };
+    }
+
+    tramoActual.puntos.push(recorrido[i + 1]);
+  }
+
+  tramoActual.fin = b.pFin;
+  tramos.push(tramoActual);
+}
 
     // Generar texto (igual que antes)
     tramos.forEach((tr, index) => {
