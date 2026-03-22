@@ -216,42 +216,29 @@ function generarRedaccion() {
   };
 
   for (let i = 0; i < recorrido.length - 1; i++) {
-    const p1 = pointsDataMap[recorrido[i]];
-    const p2 = pointsDataMap[recorrido[i + 1]];
-    if (!p1 || !p2) continue;
+  const p1 = pointsDataMap[recorrido[i]];
+  const p2 = pointsDataMap[recorrido[i + 1]];
+  if (!p1 || !p2) continue;
 
-    // 🔥 sentido basado en el INICIO del tramo (NO por segmentico)
-    const base = pointsDataMap[tramoActual.inicio];
-    const sentido = obtenerSentidoCartesiano(base, p2);
+  const sentido = obtenerSentidoCartesiano(p1, p2);
 
-    if (tramoActual.sentido === "") tramoActual.sentido = sentido;
+  if (tramoActual.sentido === "") tramoActual.sentido = sentido;
 
-    if (
-      tramoActual.sentido !== "" &&
-      (
-        (tramoActual.sentido === "Norte" && sentido === "Sur") ||
-        (tramoActual.sentido === "Sur" && sentido === "Norte") ||
-        (tramoActual.sentido === "Este" && sentido === "Oeste") ||
-        (tramoActual.sentido === "Oeste" && sentido === "Este") ||
-        (tramoActual.sentido === "Noreste" && sentido === "Suroeste") ||
-        (tramoActual.sentido === "Suroeste" && sentido === "Noreste") ||
-        (tramoActual.sentido === "Noroeste" && sentido === "Sureste") ||
-        (tramoActual.sentido === "Sureste" && sentido === "Noroeste")
-      )
-    ) {
-      tramoActual.fin = recorrido[i];
-      tramos.push({ ...tramoActual });
+  // ✅ CAMBIO CLAVE AQUÍ
+  if (tramoActual.sentido !== "" && sentido !== tramoActual.sentido) {
+    tramoActual.fin = recorrido[i];
+    tramos.push({ ...tramoActual });
 
-      tramoActual = {
-        inicio: recorrido[i],
-        fin: null,
-        puntos: [],
-        sentido: sentido
-      };
-    }
-
-    tramoActual.puntos.push(recorrido[i + 1]);
+    tramoActual = {
+      inicio: recorrido[i],
+      fin: null,
+      puntos: [],
+      sentido: sentido
+    };
   }
+
+  tramoActual.puntos.push(recorrido[i + 1]);
+}
 
   tramoActual.fin = b.pFin;
   tramos.push(tramoActual);
