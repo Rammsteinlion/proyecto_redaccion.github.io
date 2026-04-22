@@ -27,25 +27,27 @@ Aplicación web para visualizar datos catastrales desde archivos Excel de manera
 ## 🚀 Instalación y Uso
 
 1. Clona o descarga este repositorio.  
-2. Abre `index.html` en un navegador moderno.  
+2. Dar click en el archivo nombrado `index.html` y se abrira en tu navegador por defecto.
 3. Selecciona el archivo Excel con datos catastrales.  
 4. Visualiza automáticamente la información organizada en la interfaz.
-
 ---
 
 ## 📸 Vista Previa
 
-![Captura de la interfaz](image.png)
+<p align="left">
+  <img src="image/image2.png" width="500"/>
+  <img src="image/image.png" width="500"/>
+</p>
 
 ---
 
 ## 🗂 Estructura del Proyecto
 
 ```plaintext
-visor-catastral/
-├── index.html       # Interfaz principal
-├── scripts/
+proyecto/
+├── index.html       # Interfaz principal archivo de inicio
+├── main/
 │   └── main.js      # Lógica de procesamiento de datos
-├── styles/
-│   └── main.css     # Estilos complementarios (Tailwind, etc.)
-└── image.png        # Captura de pantalla de la aplicación
+├── image/
+│   └── image.png 
+        image2.png     # Captura de pantalla de la aplicación
